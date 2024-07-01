@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Логово админа</title>
+    <link rel="stylesheet" href="static/admin.css">
+</head>
+<body>
+    <h1>Загляни же в историю!</h1>
+    <p>
+        Духи многое могут поведать тебе, поверь
+    </p>
+    {% if error %}
+        <p>{{ error }}</p>
+    {% else %}
+        <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Вопрос</th>
+                    <th>Ответ</th>
+                    <th>Время</th>
+                    </tr>
+            </thead>
+            <tbody>
+                {% for question in questions %}
+                    <tr>
+                        <td>{{ question.question }}</td>
+                        <td>{{ question.answer }}</td>
+                        <td>{{ question.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    {% endif %}
+    <div class="tuc">
+    <button><a href="/">Назад</a></button>
+    </div>
+</body>
+</html>

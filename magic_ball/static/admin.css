@@ -1,0 +1,35 @@
+a{
+    text-decoration: none;
+    color: black;
+}
+
+h1{
+    text-align: center;
+}
+
+p{
+text-align: center;
+font-size: large;
+}
+
+body{
+    background-color: #EBD5B3;
+}
+
+div{
+    display: flex;
+    font-size: 26px;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+}
+
+.tuc{
+margin-top: 640px;
+}
+
+button{
+    width: 100px;
+    height: 30px;
+    font-size: 14px;
+}
