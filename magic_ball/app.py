@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import random
+import re
 from datetime import datetime
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import desc
@@ -18,12 +19,14 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-forbidden_words = [
-    "фиолетовая утка", "фиолетовые утки", "фиолетовой утке", "фиолетовую утку", "фиолетовой уткой", "фиолетовою уткою", "фиолетовой утке", "фиолетовой утки", "фиолетовых уток", "фиолетовым уткам", 
-    "фиолетовых утках", "фиолетовыми утками", "фиолетовых утках", 
-    "фиолетовая улитка", "фиолетовые улитки", "фиолетовой улитке", "фиолетовую улитку", "фиолетовой улиткой", "фиолетовою улиткою", "фиолетовой улитке", "фиолетовой улитки", 
-    "фиолетовый улиток", "фиолетовым улитка", "фиолетовых улитках", "фиолетовыми улитками", "фиолетовых улитках", "purple duck", "purple snail"
-    ]
+forbidden_patterns = [
+    r'фиолетов[а-я]* улитк[а-я]*',
+    r'фиолетов[а-я]* утк[а-я]*',
+    r'маленькая утка',
+    r'маленькая улитка',
+    r'большая утка',
+    r'большая улитка'
+]
 
 class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -35,6 +38,12 @@ def load_answers(answer_file):
     with open(answer_file, 'r', encoding='utf-8') as file:
         return [line.strip() for line in file if line.strip()]
 
+def check_forbidden_phrases(text):
+    for pattern in forbidden_patterns:
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            return True
+    return False
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -43,17 +52,15 @@ def index():
 def get_answer():
     question = request.form.get('question')
     if not question:
-        return render_template('answer.html', answer="Please enter a question.")
+        return render_template('answer.html', answer="Введите вопрос.")
     
-    for word in forbidden_words:
-        if word in question.lower():
-            return render_template('answer.html', answer="Вы ввели запрещенный запрос.")
+    
+    if check_forbidden_phrases(question):
+        return render_template('answer.html', answer="Ваш вопрос содержит запрещенные слова.")
     
     answers_file_path = 'C:/VScode/answers/answer.txt'
     answer_list = load_answers(answers_file_path)
     selected_answer = random.choice(answer_list)
-
-    
 
     new_question = Question(question=question, answer=selected_answer)
     db.session.add(new_question)
@@ -61,11 +68,6 @@ def get_answer():
 
     return render_template('answer.html', question=question, answer=selected_answer)
     
-
-
-
-
-
 @app.route('/admin')
 def admin():
     try:
@@ -78,9 +80,8 @@ def admin():
         error_msg = f"Error accessing database: {str(e)}"
         return render_template('admin.html', error=error_msg)
     
-
-app.teardown_appcontext
-def shutdown_session(expection=None):
+@app.teardown_appcontext
+def shutdown_session(exception=None):
     db.session.remove()
     
 if __name__ == '__main__':
